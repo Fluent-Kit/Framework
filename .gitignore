@@ -1,0 +1,10 @@
+.DS_Store
+Thumbs.db
+config.php
+fluentkit/bootstrap/compiled.php
+fluentkit/vendor
+fluentkit/node_modules
+fluentkit/bower_components
+fluentkit/composer.lock
+fluentkit/.env.local.php
+fluentkit/.env.php

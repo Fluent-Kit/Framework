@@ -1,0 +1,8 @@
+{
+    "name": "Theme 1",
+    "description": "Default Theme for Orchestra Platform",
+    "author": "Orchestra Platform",
+    "autoload": [
+    	"start.php"
+    ]
+}

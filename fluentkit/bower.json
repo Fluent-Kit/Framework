@@ -1,0 +1,26 @@
+{
+  "name": "FluentKit",
+  "version": "1.0.0",
+  "authors": [
+    "Lee Mason <contact@nohalfpixels.com>"
+  ],
+  "keywords": [
+    "fluentkit"
+  ],
+  "license": "MIT",
+  "homepage": "http://fluentkit.com",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "2.1.*",
+    "jquery-ui": "1.10.*",
+    "bootstrap": "3.1.*",
+    "angular": "1.3.*"
+  }
+}

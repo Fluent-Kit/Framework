@@ -1,0 +1,8 @@
+services.manifest
+cache/*
+debugbar/*
+fluentkit
+logs/*
+meta/*
+sessions/*
+views/*

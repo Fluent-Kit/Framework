@@ -1,0 +1,8 @@
+{
+	"name": "clients plugin",
+	"version": "1.0.1",
+	"author": "Lee Mason",
+    "providers": [
+        "FluentKit\\Clients\\ClientsServiceProvider"   
+    ]
+}
