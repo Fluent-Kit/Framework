@@ -70,6 +70,32 @@ gulp.task('bower', function(cb){
     .pipe(gulp_rename('angular.min.js'))
     .pipe(gulp.dest('../content/vendor/angular/'));
     
+    //respondjs
+    gulp.src('bower_components/respond/dest/respond.src.js')
+    .pipe(gulp_rename('respond.js'))
+    .pipe(gulp.dest('../content/vendor/respond/'));
+    //respondjs min
+    gulp.src('bower_components/respond/dest/respond.min.js')
+    .pipe(gulp_rename('respond.min.js'))
+    .pipe(gulp.dest('../content/vendor/respond/'));
+    
+    //html5shiv
+    gulp.src('bower_components/html5shiv/dist/html5shiv.js')
+    .pipe(gulp_rename('html5shiv.js'))
+    .pipe(gulp.dest('../content/vendor/html5shiv/'));
+    //html5shivmin
+    gulp.src('bower_components/html5shiv/dist/html5shiv.min.js')
+    .pipe(gulp_rename('html5shiv.min.js'))
+    .pipe(gulp.dest('../content/vendor/html5shiv/'));
+    //html5shiv-printshiv
+    gulp.src('bower_components/html5shiv/dist/html5shiv-printshiv.js')
+    .pipe(gulp_rename('html5shiv-printshiv.js'))
+    .pipe(gulp.dest('../content/vendor/html5shiv/'));
+    //html5shiv-printshivmin
+    gulp.src('bower_components/html5shiv/dist/html5shiv-printshiv.min.js')
+    .pipe(gulp_rename('html5shiv-printshiv.min.js'))
+    .pipe(gulp.dest('../content/vendor/html5shiv/'));
+    
     //return the callback to ensure task completes first
     cb();
     

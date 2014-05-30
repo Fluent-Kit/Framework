@@ -33,7 +33,8 @@ class FluentKitServiceProvider extends ServiceProvider {
             
             //custom providers
             $this->app->register('Barryvdh\Debugbar\ServiceProvider');
-            $this->app->register('Humweb\Filters\FiltersServiceProvider');   
+            $this->app->register('Humweb\Filters\FiltersServiceProvider'); 
+            $this->app->register('AdamWathan\BootForms\BootFormsServiceProvider');
         }
         
         
@@ -42,6 +43,7 @@ class FluentKitServiceProvider extends ServiceProvider {
         //register facades
 		//$this->registerFacade('Debugbar', 'Barryvdh\Debugbar\Facade');
 		$this->registerFacade('Filters', 'Humweb\Filters\Facade');
+        $this->registerFacade('BootForm', 'AdamWathan\BootForms\Facades\BootForm');
         
         require app_path() . '/src/FluentKit/pluggable.php';
 

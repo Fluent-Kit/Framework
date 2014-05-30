@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.3.0-build.2777+sha.440be33
+ * @license AngularJS v1.3.0-build.2783+sha.a594fa5
  * (c) 2010-2014 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -68,7 +68,7 @@ function minErr(module) {
       return match;
     });
 
-    message = message + '\nhttp://errors.angularjs.org/1.3.0-build.2777+sha.440be33/' +
+    message = message + '\nhttp://errors.angularjs.org/1.3.0-build.2783+sha.a594fa5/' +
       (module ? module + '/' : '') + code;
     for (i = 2; i < arguments.length; i++) {
       message = message + (i == 2 ? '?' : '&') + 'p' + (i-2) + '=' +
@@ -836,7 +836,7 @@ function isLeafNode (node) {
  </file>
  </example>
  */
-function copy(source, destination) {
+function copy(source, destination, stackSource, stackDest) {
   if (isWindow(source) || isScope(source)) {
     throw ngMinErr('cpws',
       "Can't copy! Making copies of Window or Scope instances is not supported.");
@@ -846,22 +846,40 @@ function copy(source, destination) {
     destination = source;
     if (source) {
       if (isArray(source)) {
-        destination = copy(source, []);
+        destination = copy(source, [], stackSource, stackDest);
       } else if (isDate(source)) {
         destination = new Date(source.getTime());
       } else if (isRegExp(source)) {
         destination = new RegExp(source.source);
       } else if (isObject(source)) {
-        destination = copy(source, {});
+        destination = copy(source, {}, stackSource, stackDest);
       }
     }
   } else {
     if (source === destination) throw ngMinErr('cpi',
       "Can't copy! Source and destination are identical.");
+
+    stackSource = stackSource || [];
+    stackDest = stackDest || [];
+
+    if (isObject(source)) {
+      var index = indexOf(stackSource, source);
+      if (index !== -1) return stackDest[index];
+
+      stackSource.push(source);
+      stackDest.push(destination);
+    }
+
+    var result;
     if (isArray(source)) {
       destination.length = 0;
       for ( var i = 0; i < source.length; i++) {
-        destination.push(copy(source[i]));
+        result = copy(source[i], null, stackSource, stackDest);
+        if (isObject(source[i])) {
+          stackSource.push(source[i]);
+          stackDest.push(result);
+        }
+        destination.push(result);
       }
     } else {
       var h = destination.$$hashKey;
@@ -869,29 +887,41 @@ function copy(source, destination) {
         delete destination[key];
       });
       for ( var key in source) {
-        destination[key] = copy(source[key]);
+        result = copy(source[key], null, stackSource, stackDest);
+        if (isObject(source[key])) {
+          stackSource.push(source[key]);
+          stackDest.push(result);
+        }
+        destination[key] = result;
       }
       setHashKey(destination,h);
     }
+
   }
   return destination;
 }
 
 /**
- * Create a shallow copy of an object
+ * Creates a shallow copy of an object, an array or a primitive
  */
 function shallowCopy(src, dst) {
-  dst = dst || {};
+  if (isArray(src)) {
+    dst = dst || [];
 
-  for(var key in src) {
-    // shallowCopy is only ever called by $compile nodeLinkFn, which has control over src
-    // so we don't need to worry about using our custom hasOwnProperty here
-    if (src.hasOwnProperty(key) && !(key.charAt(0) === '$' && key.charAt(1) === '$')) {
-      dst[key] = src[key];
+    for ( var i = 0; i < src.length; i++) {
+      dst[i] = src[i];
+    }
+  } else if (isObject(src)) {
+    dst = dst || {};
+
+    for (var key in src) {
+      if (hasOwnProperty.call(src, key) && !(key.charAt(0) === '$' && key.charAt(1) === '$')) {
+        dst[key] = src[key];
+      }
     }
   }
 
-  return dst;
+  return dst || src;
 }
 
 
@@ -2037,7 +2067,7 @@ function setupModuleLoader(window) {
  * - `codeName` – `{string}` – Code name of the release, such as "jiggling-armfat".
  */
 var version = {
-  full: '1.3.0-build.2777+sha.440be33',    // all of these placeholder strings will be replaced by grunt's
+  full: '1.3.0-build.2783+sha.a594fa5',    // all of these placeholder strings will be replaced by grunt's
   major: 1,    // package task
   minor: 3,
   dot: 0,
@@ -7495,9 +7525,9 @@ function $HttpProvider() {
       common: {
         'Accept': 'application/json, text/plain, */*'
       },
-      post:   copy(CONTENT_TYPE_APPLICATION_JSON),
-      put:    copy(CONTENT_TYPE_APPLICATION_JSON),
-      patch:  copy(CONTENT_TYPE_APPLICATION_JSON)
+      post:   shallowCopy(CONTENT_TYPE_APPLICATION_JSON),
+      put:    shallowCopy(CONTENT_TYPE_APPLICATION_JSON),
+      patch:  shallowCopy(CONTENT_TYPE_APPLICATION_JSON)
     },
 
     xsrfCookieName: 'XSRF-TOKEN',
@@ -8258,7 +8288,7 @@ function $HttpProvider() {
           } else {
             // serving from cache
             if (isArray(cachedResp)) {
-              resolvePromise(cachedResp[1], cachedResp[0], copy(cachedResp[2]), cachedResp[3]);
+              resolvePromise(cachedResp[1], cachedResp[0], shallowCopy(cachedResp[2]), cachedResp[3]);
             } else {
               resolvePromise(cachedResp, 200, {}, 'OK');
             }
@@ -11163,7 +11193,7 @@ function $ParseProvider() {
               self.$$postDigestQueue.push(function () {
                 // create a copy if the value is defined and it is not a $sce value
                 if ((stable = isDefined(lastValue)) && !lastValue.$$unwrapTrustedValue) {
-                  lastValue = copy(lastValue);
+                  lastValue = copy(lastValue, null);
                 }
               });
             }
@@ -11954,10 +11984,14 @@ function $RootScopeProvider(){
        *   {@link ng.$rootScope.Scope#$digest $digest()} and should be idempotent.)
        * - The `listener` is called only when the value from the current `watchExpression` and the
        *   previous call to `watchExpression` are not equal (with the exception of the initial run,
-       *   see below). The inequality is determined according to
-       *   {@link angular.equals} function. To save the value of the object for later comparison,
-       *   the {@link angular.copy} function is used. It also means that watching complex options
-       *   will have adverse memory and performance implications.
+       *   see below). Inequality is determined according to reference inequality,
+       *   [strict comparison](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators)
+       *    via the `!==` Javascript operator, unless `objectEquality == true`
+       *   (see next point)
+       * - When `objectEquality == true`, inequality of the `watchExpression` is determined
+       *   according to the {@link angular.equals} function. To save the value of the object for
+       *   later comparison, the {@link angular.copy} function is used. This therefore means that
+       *   watching complex objects will have adverse memory and performance implications.
        * - The watch `listener` may change the model, which may trigger other `listener`s to fire.
        *   This is achieved by rerunning the watchers until no changes are detected. The rerun
        *   iteration limit is 10 to prevent an infinite loop deadlock.
@@ -12429,7 +12463,7 @@ function $RootScopeProvider(){
                                && isNaN(value) && isNaN(last)))) {
                       dirty = true;
                       lastDirtyWatch = watch;
-                      watch.last = watch.eq ? copy(value) : value;
+                      watch.last = watch.eq ? copy(value, null) : value;
                       watch.fn(value, ((last === initWatchVal) ? value : last), current);
                       if (ttl < 5) {
                         logIdx = 4 - ttl;
@@ -13758,7 +13792,7 @@ function $SceProvider() {
         'document.  See http://docs.angularjs.org/api/ng.$sce for more information.');
     }
 
-    var sce = copy(SCE_CONTEXTS);
+    var sce = shallowCopy(SCE_CONTEXTS);
 
     /**
      * @ngdoc method
@@ -19096,7 +19130,7 @@ function classDirective(name, selector) {
               updateClasses(oldClasses, newClasses);
             }
           }
-          oldVal = copy(newVal);
+          oldVal = shallowCopy(newVal);
         }
       }
     };
@@ -19124,7 +19158,7 @@ function classDirective(name, selector) {
         var classes = [], i = 0;
         forEach(classVal, function(v, k) {
           if (v) {
-            classes.push(k);
+            classes = classes.concat(k.split(' '));
           }
         });
         return classes;
@@ -22222,7 +22256,7 @@ var selectDirective = ['$compile', '$parse', function($compile,   $parse) {
         // we need to work of an array, so we need to see if anything was inserted/removed
         scope.$watch(function selectMultipleWatch() {
           if (!equals(lastView, ctrl.$viewValue)) {
-            lastView = copy(ctrl.$viewValue);
+            lastView = shallowCopy(ctrl.$viewValue);
             ctrl.$render();
           }
         });

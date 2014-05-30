@@ -13,11 +13,16 @@
 
 $app['router']->get('/', function() use ($app)
 {
-    
+
     $repo = new FluentKit\User\Repositories\UserRepository;
-    $user = $repo->firstOrCreate(array('email' => 'test7@test.com'));
+    //$user = $repo->firstOrCreate(array('email' => 'personal@leemason.co.uk', 'password' => 'testing123'));
+    //$user->password_confirmation = 'testing123';
+    //$user->save();
+    //print_r($user->errors());
     
-    Auth::login($user);
+    return $app['view']->make('layouts/master');
+    
+    //Auth::login($user);
     
 	//echo app_path();
 	//return $app['view']->make('hello');
@@ -36,15 +41,7 @@ $app['router']->get('/', function() use ($app)
 	//print_r(Plugin::collection()->get('clients'));
 
     
-	Messages::extend(function ($message) {
-	    $message->add('info', 'Read-only mode');
-	});
-
-	Messages::all(null, true);
-
-	Event::listen('header', function(){
-		Asset::activate('jquery-ui');
-	}, 10);
+	
 	
 	return $app['view']->make('hello');
 });

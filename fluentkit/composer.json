@@ -13,7 +13,8 @@
 		"fluentkit/theme": "dev-master",
 		"fluentkit/plugin": "dev-master",
 		"humweb/filters": "dev-master",
-		"barryvdh/laravel-debugbar": "1.*"
+        "adamwathan/bootforms": "0.2.*",
+		"barryvdh/laravel-debugbar": "dev-master"
 	},
 	"autoload": {
 		"psr-0": {
@@ -28,12 +29,17 @@
 		"post-install-cmd": [
 			"php artisan clear-compiled",
 			"php artisan optimize --force",
+            "php artisan asset:publish",
+            "npm install",
+            "bower install --allow-root",
             "gulp"
 		],
 		"post-update-cmd": [
 			"php artisan clear-compiled",
 			"php artisan optimize --force",
-			"php artisan debugbar:publish",
+			"php artisan asset:publish",
+            "npm update",
+            "bower update --allow-root",
             "gulp"
 		],
 		"post-create-project-cmd": [
