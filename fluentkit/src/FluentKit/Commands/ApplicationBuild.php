@@ -42,17 +42,19 @@ class ApplicationBuild extends Command {
 	 */
 	public function fire()
 	{
+        $app = $this->getLaravel();
+        $version = $app['config']->get('app.version');
 
-		Artisan::call('optimize', array('--force' => ''));
+		$this->call('optimize', array('--force' => ''));
 		//
-		$this->info('Building Application Version: ' . $this->option('build-version'));
-		if(File::copyDirectory(base_path().'/..', base_path().'/../../fluentkit-'.$this->option('build-version'))){
+		$this->info('Building Application Version: ' . $version);
+		if($app['files']->copyDirectory(base_path().'/..', base_path().'/../../fluentkit-'.$version)){
 
 
 			$this->info('Application Copied');
 
-			$vendorDir = base_path().'/../../fluentkit-'.$this->option('build-version') . '/fluentkit/app/vendor';
-
+			$vendorDir = base_path().'/../../fluentkit-'.$version . '/fluentkit/app/vendor';
+            /*
 			$rules = array(
 		    	'doctrine/annotations'                                       => 'bin tests',
 				'doctrine/cache'                                             => 'bin tests',
@@ -118,12 +120,6 @@ class ApplicationBuild extends Command {
 		        'barryvdh/laravel-debugbar' => 'readme* tests',
 		        'barryvdh/laravel-httpcache' => 'readme* tests phpunit.xml',
 		        'humweb/filters' => 'tests *.yml LICENSE README.md phpunit.xml',
-		        'justinrainbow/json-schema' => 'test docs phpunit.xml* LICENSE README.md',
-		        'kriswallsmith/assetic' => 'Gemfile LICENSE README.md CHANGELOG*',
-		        'jasonlewis/resource-watcher' => 'tests watcher phpunit.xml LICENSE README.md',
-		        'seld/jsonlint' => 'tests phpunit.xml* LICENSE README.mdown CHANGELOG*',
-		        'herrera-io/json' => 'phpunit.xml* LICENSE README.md',
-		        'cartalyst/sentry' => 'changelog.md docs license.txt phpunit.xml* readme.md schema tests src/Cartalyst/Sentry/Facades/CI src/Cartalyst/Sentry/Facades/FuelPHP src/Cartalyst/Sentry/Facades/Kohana src/Cartalyst/Sentry/Cookies/CICookie.php src/Cartalyst/Sentry/Cookies/FuelPHPCookie.php src/Cartalyst/Sentry/Cookies/KohanaCookie.php src/Cartalyst/Sentry/Groups/Kohana src/Cartalyst/Sentry/Sessions/CISession.php src/Cartalyst/Sentry/Sessions/FuelPHPSession.php src/Cartalyst/Sentry/Sessions/KohanaSession.php src/Cartalyst/Sentry/Throttling/Kohana src/Cartalyst/Sentry/Users/Kohana',
 			);
 
 		    $filesystem = new Filesystem();
@@ -151,56 +147,102 @@ class ApplicationBuild extends Command {
 		            }
 		        }
 		    }
-
-
-			$files = File::allFiles(base_path().'/../../fluentkit-'.$this->option('build-version'));
+            */
+            /*
+			$files = $app['files']->allFiles(base_path().'/../../fluentkit-'.$version);
 			$this->info('Performing Deletes, Optimisations and Comment Removal');
+            
+            $dirs_to_remove = array(
+                'tests',
+                '.git',
+                'node_modules',
+                'bower_components',
+                'cgi-bin',
+                'vendor/phpunit',
+                'vendor/sebastien',
+                'vendor/mockery'
+            );
+            
+            
 			foreach($files as $file){
+                
+                if($app['files']->isDirectory($file->getRealPath())){
+                    foreach($dirs_to_remove as $dir){
+                        if(str_contains($file->getRealPath(), $dir)){
+                            $app['files']->deleteDirectory($file->getRealPath());   
+                        }
+                    }
+                }
 
 				//remove artisan command
-				if(strpos($file->getRealPath(), '/app/start/artisan.php') !== false){
-					$content = str_replace('Artisan::add(new \FluentKit\Commands\ApplicationBuild);', '', File::get($file->getRealPath()));
-					File::put($file->getRealPath(), $content);
+				if(str_contains($file->getRealPath(), '/app/start/artisan.php')){
+					$content = str_replace('Artisan::add(new \FluentKit\Commands\ApplicationBuild);', '', $app['files']->get($file->getRealPath()));
+					$app['files']->put($file->getRealPath(), $content);
 				}
 
 				//delete files we dont need
 				if( 
-					in_array( File::extension($file->getRealPath()), array('txt','md', 'markdown', 'sh', 'exe') ) || 
-					in_array( $file->getFilename(), array('composer.phar', 'composer.json', 'composer.lock', 'error_log', 'phpunit.xml', 'phpunit.php', 'phpunit.xml.dist') ) || 
-					strpos($file->getRealPath(), '.git') !== false || 
-					strpos($file->getRealPath(), '.gitignore') !== false || 
-					strpos($file->getRealPath(), '.gitattributes') !== false || 
-					strpos($file->getRealPath(), '.travis') !== false || 
-					strpos($file->getRealPath(), 'cgi-bin') !== false || 
-					strpos($file->getRealPath(), '/app/storage/') !== false || 
-					strpos($file->getRealPath(), '/storage/') !== false || 
-					strpos($file->getRealPath(), '/FluentKit/Commands/ApplicationBuild.php') !== false || 
-					strpos($file->getRealPath(), '/fluentkit/server.php') !== false 
+					in_array( $app['files']->extension($file->getRealPath()), array('txt','md', 'markdown', 'sh', 'exe') ) || 
+					in_array( $file->getFilename(), array('composer.phar', 'composer.json', 'composer.lock', 'error_log', 'phpunit.xml', 'phpunit.php', 'phpunit.xml.dist', 'bower.json', 'package.json', 'gulpfile.js') ) || 
+					str_contains($file->getRealPath(), '.git') || 
+					str_contains($file->getRealPath(), '.gitignore') || 
+					str_contains($file->getRealPath(), '.gitattributes') || 
+					str_contains($file->getRealPath(), '.travis') || 
+					str_contains($file->getRealPath(), 'cgi-bin') || 
+					str_contains($file->getRealPath(), '/storage/cache/') ||
+                    str_contains($file->getRealPath(), '/storage/debugbar/') ||
+                    str_contains($file->getRealPath(), '/storage/fluentkit') ||
+                    str_contains($file->getRealPath(), '/storage/logs/') ||
+                    str_contains($file->getRealPath(), '/storage/meta/') ||
+                    str_contains($file->getRealPath(), '/storage/sessions/') ||
+                    str_contains($file->getRealPath(), '/storage/views/') ||
+					str_contains($file->getRealPath(), '/FluentKit/Commands/ApplicationBuild.php') || 
+                    str_contains($file->getRealPath(), 'node_modules') || 
+                    str_contains($file->getRealPath(), 'bower_components') || 
+					str_contains($file->getRealPath(), '/fluentkit/server.php')
 					){
-					File::delete($file->getRealPath());
+					$app['files']->delete($file->getRealPath());
 					continue;
 				}
+                
 
 				//optimize files
-				if(File::extension($file->getRealPath()) == 'php' || $file->getFilename() == 'artisan'){
-					$content = File::get($file->getRealPath());
+				if($app['files']->extension($file->getRealPath()) == 'php' || $file->getFilename() == 'artisan'){
+					$content = $app['files']->get($file->getRealPath());
 					$content = $this->removeComments($content);
 					$content = preg_replace('/\n\s*\n/', "\n", $content);
-					File::put($file->getRealPath(), $content);
+					$app['files']->put($file->getRealPath(), $content);
 				}		
 			}
-			
+            */
+            
+			system('cd '.base_path().'/../../fluentkit-'.$version.'/fluentkit && composer update --prefer-dist --no-dev');
+            $line = system('du -sh '.base_path().'/../../fluentkit-'.$version, $return);
+            $app['files']->deleteDirectory(base_path().'/../../fluentkit-'.$version.'/fluentkit/bower_components');
+            $app['files']->deleteDirectory(base_path().'/../../fluentkit-'.$version.'/fluentkit/node_modules');
+            $files = $app['files']->allFiles(base_path().'/../../fluentkit-'.$version);
+			$this->info('Performing Deletes, Optimisations and Comment Removal');
+			foreach($files as $file){
+                //optimize files
+				if($app['files']->extension($file->getRealPath()) == 'php' || $file->getFilename() == 'artisan'){
+					$content = $app['files']->get($file->getRealPath());
+					$content = $this->removeComments($content);
+					$content = preg_replace('/\n\s*\n/', "\n", $content);
+					$app['files']->put($file->getRealPath(), $content);
+				}
+            }
 			$this->info('Application Build Ready');
 			$this->info('Application Build Stats:');
-			$line = system('du -sh '.base_path().'/../../fluentkit-'.$this->option('build-version'), $return);
+			$line = system('du -sh '.base_path().'/../../fluentkit-'.$version, $return);
 			$this->info('Compressing Application');
-			$line = system('tar -zcf '.base_path().'/../../fluentkit-'.$this->option('build-version').'.tar.gz '.base_path().'/../../fluentkit-'.$this->option('build-version'));
+			$line = system('tar -zcf '.base_path().'/../../fluentkit-'.$version.'.tar.gz '.base_path().'/../../fluentkit-'.$version);
 			$this->info('Compressed Application Build Stats:');
-			$line = system('du -sh '.base_path().'/../../fluentkit-'.$this->option('build-version').'.tar.gz', $return);
+			$line = system('du -sh '.base_path().'/../../fluentkit-'.$version.'.tar.gz', $return);
 			
-			if( File::deleteDirectory( base_path().'/../../fluentkit-'.$this->option('build-version') ) ){
-				$this->info('Temporary Application Build Folder Removed');
-			}
+			//if( $app['files']->deleteDirectory( base_path().'/../../fluentkit-'.$version ) ){
+			//	$this->info('Temporary Application Build Folder Removed');
+	//		}
+            $this->info('Application Build Completed!');
 			
 		}
 	}
@@ -225,7 +267,6 @@ class ApplicationBuild extends Command {
 	protected function getOptions()
 	{
 		return array(
-			array('build-version', null, InputOption::VALUE_REQUIRED, 'Build Version', null),
 		);
 	}
 

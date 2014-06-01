@@ -79,7 +79,7 @@ class ApplicationInstall extends Command {
         unset($data['command']);
         unset($data['admin-email']);
         unset($data['admin-password']);
-        $data['installed'] = time();
+        $data['installed'] = $app['config']->get('app.version');
         $app['files']->put($app['path.storage'] . '/fluentkit', json_encode($data));
         
         $this->info('Install Complete!');

@@ -119,6 +119,6 @@ return array(
 	|
 	*/
 
-	'pretend' => DEBUG,
+	'pretend' => \Config::get('app.debug'),
 
 );
