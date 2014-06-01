@@ -1,5 +1,16 @@
 <?php
 
+/*
+|--------------------------------------------------------------------------
+| Require Config file
+|--------------------------------------------------------------------------
+|
+| We need these details right from the off.
+|
+*/
+
+require __DIR__.'/../../config.php';
+
 define('LARAVEL_START', microtime(true));
 
 /*
