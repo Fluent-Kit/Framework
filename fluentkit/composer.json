@@ -36,7 +36,7 @@
             "php artisan asset:publish",
             "npm install bower",
             "bower install --allow-root",
-            "npm install gulp",
+            "npm install",
             "gulp"
 		],
 		"post-update-cmd": [
