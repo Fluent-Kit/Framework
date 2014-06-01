@@ -55,6 +55,8 @@ class ApplicationInstall extends Command {
             return false;
         }
         
+        //if($app['files'])
+        
         $app['config']->set('database.connections.mysql.host', $args['db-host']);
         $app['config']->set('database.connections.mysql.database', $args['db-name']);
         $app['config']->set('database.connections.mysql.username', $args['db-user']);
