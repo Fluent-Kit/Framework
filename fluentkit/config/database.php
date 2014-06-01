@@ -25,7 +25,7 @@ return array(
 	| you may use many connections at once using the Database library.
 	|
 	*/
-
+    
 	'default' => 'mysql',
 
 	/*
@@ -54,13 +54,13 @@ return array(
 
 		'mysql' => array(
 			'driver'    => 'mysql',
-			'host'      => DB_HOST,
-			'database'  => DB_NAME,
-			'username'  => DB_USER,
-			'password'  => DB_PASS,
+			'host'      => '',
+			'database'  => '',
+			'username'  => '',
+			'password'  => '',
 			'charset'   => 'utf8',
 			'collation' => 'utf8_unicode_ci',
-			'prefix'    => DB_PREFIX,
+			'prefix'    => '',
 		),
 
 		'pgsql' => array(

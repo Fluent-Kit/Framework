@@ -45,22 +45,3 @@ $app['router']->get('/', function() use ($app)
 	
 	return $app['view']->make('hello');
 });
-
-
-$app['router']->get('/install', function() use ($app)
-{
-    
-    
-	$buffer = new \Symfony\Component\Console\Output\BufferedOutput;
-	$buffer->writeln('Running base Migrations');
-	\Artisan::call('migrate', array(), $buffer);
-	$buffer->writeln('Running Plugin Migrations');
-	\Artisan::call('migrate', array('--package' => 'fluentkit/plugin'), $buffer);
-	$buffer->writeln('Seeding Database');
-	\Artisan::call('db:seed', array(), $buffer);
-    
-    $data = array('installed' => true);
-    $app['files']->put($app['path.storage'] . '/fluentkit', json_encode($data));
-    
-	return nl2br($buffer->fetch());
-});

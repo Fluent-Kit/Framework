@@ -12,15 +12,49 @@ class FluentKitServiceProvider extends ServiceProvider {
 	 * @var bool
 	 */
 	protected $defer = false;
+    
+    public function __construct($app){
+        parent::__construct($app);
+        
+        $app = $this->app;
+        
+        $app['installed'] = false;
+        
+        //check install status
+        try{
+            $data = (array) json_decode($app['files']->get($app['path.storage'] . '/fluentkit'), true);
+            //set runtime vars
+            $app['config']->set('database.connections.mysql.host', $data['db-host']);
+            $app['config']->set('database.connections.mysql.database', $data['db-name']);
+            $app['config']->set('database.connections.mysql.username', $data['db-user']);
+            $app['config']->set('database.connections.mysql.password', $data['db-password']);
+            $app['config']->set('database.connections.mysql.prefix', $data['db-prefix']);
+            $app['config']->set('app.installed', $data['installed']);
+            $app['installed'] = true;
+        }catch (\Exception $e){
+            
+            $this->app->before(function() use($app){
+            
+                //trigger redirect to install
+                if(!$this->app['request']->is('install*')){
+                    return $this->app['redirect']->to('/install');   
+                }
+                
+                //install routes
+                $app['router']->get('/install', function() use ($app)
+                {
+                    $buffer = new \Symfony\Component\Console\Output\BufferedOutput;
+                    $app['artisan']->call('fluentkit:install', array('db-host' => 'localhost','db-name' => 'fluentkit', 'db-user' => 'root', 'db-password' => '', 'db-prefix' => 'prefix_'), $buffer);
+                    
+                    return nl2br($buffer->fetch());
+                });
+            });
+        }
+    }
 
     public function register()
     {   
-        try{
-            $data = (array) json_decode($this->app['files']->get($this->app['path.storage'] . '/fluentkit'), true);
-            $this->app['installed'] = true;
-        }catch (\Exception $e){  
-            $this->app['installed'] = false;
-        }
+        $app = $this->app;
         
 
 		//fluent providers

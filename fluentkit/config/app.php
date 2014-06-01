@@ -1,6 +1,8 @@
 <?php
 
 return array(
+    
+    'version' => '0.1.0',
 
 	/*
 	|--------------------------------------------------------------------------
@@ -105,7 +107,7 @@ return array(
 		'Illuminate\Validation\ValidationServiceProvider',
 		'Illuminate\View\ViewServiceProvider',
 		//'Illuminate\Workbench\WorkbenchServiceProvider',
-		'FluentKit\Providers\FluentKitServiceProvider',
+        'FluentKit\Providers\FluentKitServiceProvider',
 	),
 
 	/*

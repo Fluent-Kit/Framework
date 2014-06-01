@@ -12,3 +12,5 @@
 */
 
 Artisan::add(new \FluentKit\Commands\ApplicationBuild);
+
+Artisan::add(new \FluentKit\Commands\ApplicationInstall);

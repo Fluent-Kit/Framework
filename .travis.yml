@@ -9,19 +9,12 @@ php:
 
 before_script:
   - mysql -e 'create database fluentkit;'
-  - travis_retry mkdir -p storage/meta;
-  - travis_retry mkdir -p storage/cache;
-  - travis_retry mkdir -p storage/debugbar;
-  - travis_retry mkdir -p storage/logs;
-  - travis_retry mkdir -p storage/sessions;
-  - travis_retry mkdir -p storage/views;
-  - travis_retry echo '{"installed":true}' >> storage/fluentkit;
   - travis_retry find storage -type d -exec chmod 777 {} \;
   - travis_retry find storage -type f -exec chmod 777 {} \;
   - travis_retry cd fluentkit
   - travis_retry composer self-update
   - travis_retry composer install --prefer-source --no-interaction --dev
-  - travis_retry php artisan migrate
+  - travis_retry php artisan fluentkit:install localhost fluentkit root '' fluent_
 
 script: vendor/bin/phpunit --verbose
 
