@@ -29,9 +29,17 @@ class FluentKitServiceProvider extends ServiceProvider {
             $app['config']->set('database.connections.mysql.username', $data['db-user']);
             $app['config']->set('database.connections.mysql.password', $data['db-password']);
             $app['config']->set('database.connections.mysql.prefix', $data['db-prefix']);
+            
+            $app['config']->set('app.url', $data['url']);
+            $app['config']->set('app.key', $data['secret-key']);
+            
             $app['config']->set('app.installed', $data['installed']);
+            
+            
             $app['installed'] = true;
         }catch (\Exception $e){
+            
+            $app['config']->set('view.paths', array(app_path().'/views'));
             
             $this->app->before(function() use($app){
             
@@ -43,11 +51,58 @@ class FluentKitServiceProvider extends ServiceProvider {
                 //install routes
                 $app['router']->get('/install', function() use ($app)
                 {
-                    $buffer = new \Symfony\Component\Console\Output\BufferedOutput;
-                    $app['artisan']->call('fluentkit:install', array('db-host' => 'localhost','db-name' => 'fluentkit', 'db-user' => 'root', 'db-password' => '', 'db-prefix' => 'prefix_'), $buffer);
-                    
-                    return nl2br($buffer->fetch());
+                    return $app['view']->make('install.index')->withTitle('FluentKit Install');
                 });
+                
+                $app['router']->post('/install', array('before' => 'csrf', function() use ($app){
+                    $data = array();
+                    $v = $app['validator']->make($app['request']->all(), array(
+                        'url' => 'required|url',
+                        'dbhost' => 'required',
+                        'dbname' => 'required',
+                        'dbuser' => 'required',
+                        'key' => 'required'
+                    ));
+                    
+                    if($v->fails()){
+                        $m = $v->messages();
+                        $data['status'] = 'error';
+                        $data['message'] = 'Whoops! Some of the data provided isnt suitable.';
+                        $data['errors'] = array();
+                        $data['errors']['url'] = $m->first('url');
+                        $data['errors']['dbhost'] = $m->first('dbhost');
+                        $data['errors']['dbname'] = $m->first('dbname');
+                        $data['errors']['dbuser'] = $m->first('dbuser');
+                        $data['errors']['key'] = $m->first('key');
+                        return $app['response']->json($data);   
+                    }
+                    
+                    //test the db connection
+                    try{
+                        $dbh = new \PDO('mysql:host='.$app['request']->input('dbhost').';dbname='.$app['request']->input('dbname').'',$app['request']->input('dbuser'),$app['request']->input('dbpassword'));
+                        $dbh = null;
+                    }catch(\PDOException $ex){
+                        $data['status'] = 'error';
+                        $data['message'] = 'Whoops! We could not connect to the Database with those details.';
+                        $data['sql_error'] = $ex->getMessage();
+                        return $app['response']->json($data);
+                    }
+                    
+                    $buffer = new \Symfony\Component\Console\Output\BufferedOutput;
+                    $app['artisan']->call('fluentkit:install', array('db-host' => $app['request']->input('dbhost'),'db-name' => $app['request']->input('dbname'), 'db-user' => $app['request']->input('dbuser'), 'db-password' => $app['request']->input('dbpassword'), 'db-prefix' => 'prefix_', 'url' => $app['request']->input('url'), 'secret-key' => $app['request']->input('key')), $buffer);
+                    
+                    $console = $buffer->fetch();
+                    
+                    if(str_contains($console, 'Install Complete!')){
+                        $msgs = array_filter(explode("\n", $console));
+                        $data['status'] = 'success';
+                        $data['message'] = 'FluentKit Installed Successfully!';
+                        $data['tasks'] = $msgs;
+                        return $app['response']->json($data);
+                    }
+                    
+                    return $app['response']->json($data);
+                }));
             });
         }
     }

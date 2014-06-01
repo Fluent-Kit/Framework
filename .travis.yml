@@ -14,7 +14,7 @@ before_script:
   - travis_retry cd fluentkit
   - travis_retry composer self-update
   - travis_retry composer install --prefer-source --no-interaction --dev
-  - travis_retry php artisan fluentkit:install localhost fluentkit root '' fluent_
+  - travis_retry php artisan fluentkit:install localhost fluentkit root '' fluent_ http://dev.fluentkit.io YourSecretKey!!!
 
 script: vendor/bin/phpunit --verbose
 

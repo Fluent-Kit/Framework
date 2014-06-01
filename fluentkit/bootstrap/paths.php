@@ -52,6 +52,6 @@ return array(
 	|
 	*/
 
-	'storage' => STORAGE_PATH,
+	'storage' => __DIR__.'/../../storage',
 
 );

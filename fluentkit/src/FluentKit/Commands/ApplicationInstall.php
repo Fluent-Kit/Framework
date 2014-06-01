@@ -55,7 +55,8 @@ class ApplicationInstall extends Command {
             return false;
         }
         
-        //if($app['files'])
+        $app['config']->set('app.url', $args['url']);
+        $app['config']->set('app.key', $args['secret-key']);
         
         $app['config']->set('database.connections.mysql.host', $args['db-host']);
         $app['config']->set('database.connections.mysql.database', $args['db-name']);
@@ -100,6 +101,8 @@ class ApplicationInstall extends Command {
             array('db-user', InputArgument::REQUIRED, 'Database User'),
             array('db-password', InputArgument::REQUIRED, 'Database Password'),
             array('db-prefix', InputArgument::REQUIRED, 'Database Prefix'),
+            array('url', InputArgument::REQUIRED, 'Application URL'),
+            array('secret-key', InputArgument::REQUIRED, 'Secret Key'),
 		);
 	}
 
