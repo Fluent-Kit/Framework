@@ -14,6 +14,7 @@ before_script:
   - travis_retry mkdir -p storage/logs;
   - travis_retry mkdir -p storage/sessions;
   - travis_retry mkdir -p storage/views;
+  - travis_retry echo '{"installed":true}' >> storage/fluentkit;
   - travis_retry find storage -type d -exec chmod 777 {} \;
   - travis_retry find storage -type f -exec chmod 777 {} \;
   - travis_retry cd fluentkit
