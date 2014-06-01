@@ -34,9 +34,8 @@
 		"post-install-cmd": [
 			"php artisan clear-compiled",
             "php artisan asset:publish",
-            "npm install bower",
-            "bower install --allow-root",
             "npm install",
+            "bower install --allow-root",
             "gulp"
 		],
 		"post-update-cmd": [
