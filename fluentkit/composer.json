@@ -12,6 +12,8 @@
 		"fluentkit/asset": "dev-master",
 		"fluentkit/theme": "dev-master",
 		"fluentkit/plugin": "dev-master",
+        "guzzlehttp/guzzle": "4.*",
+        "league/csv": "5.*",
 		"humweb/filters": "dev-master",
         "adamwathan/bootforms": "0.2.*",
 		"barryvdh/laravel-debugbar": "dev-master"
