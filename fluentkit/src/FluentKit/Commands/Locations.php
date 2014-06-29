@@ -44,10 +44,11 @@ class Locations extends Command {
 	{
         $this->info('Fetching MaxMind Locations File...');
         //http://geolite.maxmind.com/download/geoip/database/GeoLite2-City-CSV.zip
-        
-        /*
         $client = new Client;
+
         $response = $client->get('http://geolite.maxmind.com/download/geoip/database/GeoLite2-City-CSV.zip');
+        
+        //return;
         
         $this->info('Extracting CSV File...');
         
@@ -67,13 +68,15 @@ class Locations extends Command {
           $zip->close();
         }
         $file->delete(storage_path() . '/temp/geolite.zip');
-        */
+        
         $this->info('Reading CSV File...');
         
         $reader = new Reader(storage_path() . '/temp/geolite.csv');
         $reader->setDelimiter(',');
         $data = $reader->fetchOne(1);
         $this->info(print_r($data, true));
+        
+        $file->delete(storage_path() . '/temp/geolite.csv');
         
         
     }
