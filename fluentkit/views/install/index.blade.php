@@ -135,7 +135,7 @@
                 <p ng-show="form.key.$valid">Please read our License and Terms & conditions before agreeing and installing FluentKit.</p>
                 
                 <div id="tos-group" class="form-group" ng-class="{ 'has-error' : form.tos.$error.required && form.tos.$dirty || form.tos.remote_error}" ng-show="form.key.$valid">
-                    <label for="tos">Secure Key</label>
+                    <label for="tos">Terms & Conditions</label>
                     <div class="checkbox">
                         <label><input type="checkbox" name="tos" id="tos" ng-model="formData.tos" value="1" required> Click to accept our License and Terms & Conditions</label>
                     </div>

@@ -89,7 +89,7 @@ class FluentKitServiceProvider extends ServiceProvider {
                     }
                     
                     $buffer = new \Symfony\Component\Console\Output\BufferedOutput;
-                    $app['artisan']->call('fluentkit:install', array('db-host' => $app['request']->input('dbhost'),'db-name' => $app['request']->input('dbname'), 'db-user' => $app['request']->input('dbuser'), 'db-password' => $app['request']->input('dbpassword'), 'db-prefix' => 'prefix_', 'url' => $app['request']->input('url'), 'secret-key' => $app['request']->input('key')), $buffer);
+                    $app['artisan']->call('fluentkit:install', array('db-host' => $app['request']->input('dbhost'),'db-name' => $app['request']->input('dbname'), 'db-user' => $app['request']->input('dbuser'), 'db-password' => $app['request']->input('dbpassword'), 'db-prefix' => 'prefix_', 'url' => $app['request']->input('url'), 'secret-key' => $app['request']->input('key'), '--env' => 'local'), $buffer);
                     
                     $console = $buffer->fetch();
                     

@@ -67,11 +67,12 @@ class ApplicationInstall extends Command {
         $this->info('Running Migrations...');
         $this->call('migrate', array());
         
-        $this->info('FluentKit/Plugin Migrations...');
-        $this->call('migrate', array('--package' => 'fluentkit/plugin'));
-        
         $this->info('Seeding Database...');
         $this->call('db:seed', array());
+        /*
+        $this->info('Importing Countries Data...');
+        $this->call('fluentkit:locations', array());
+        */
     
         $this->info('Writting Install File...');
         

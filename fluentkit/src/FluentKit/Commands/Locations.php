@@ -2,6 +2,7 @@
 namespace FluentKit\Commands;
 
 use ZipArchive;
+use DB;
 use GuzzleHttp\Client;
 use League\Csv\Reader;
 use Illuminate\Filesystem\FileSystem;
@@ -42,6 +43,7 @@ class Locations extends Command {
 	 */
 	public function fire()
 	{
+		/*
         $this->info('Fetching MaxMind Locations File...');
         //http://geolite.maxmind.com/download/geoip/database/GeoLite2-City-CSV.zip
         $client = new Client;
@@ -68,15 +70,144 @@ class Locations extends Command {
           $zip->close();
         }
         $file->delete(storage_path() . '/temp/geolite.zip');
+        */
         
         $this->info('Reading CSV File...');
         
         $reader = new Reader(storage_path() . '/temp/geolite.csv');
         $reader->setDelimiter(',');
-        $data = $reader->fetchOne(1);
-        $this->info(print_r($data, true));
-        
-        $file->delete(storage_path() . '/temp/geolite.csv');
+        //$data = $reader->fetchOne(1);
+        //$this->info(print_r($data, true));
+
+        $data = $reader->fetchAssoc([
+        	'geoname_id',
+        	'continent_code',
+        	'continent_name',
+        	'country_iso_code',
+        	'country_name',
+        	'subdivision_iso_code',
+        	'subdivision_name',
+        	'city_name',
+        	'metro_code',
+        	'time_zone'
+        ]);
+
+	    unset($data[0]);
+	    $timezones = [];
+	    $continents = [];
+	    $countries = [];
+	    $regions = [];
+	    $cities = [];
+	    foreach($data as $line){
+
+	    	if($line['time_zone'] != '' && !isset($timezones[$line['time_zone']])){
+	    		$timezones[$line['time_zone']] = true;
+	    	}
+
+	    	if($line['continent_code'] != '' && !isset($continents[$line['continent_code']])){
+	    		$continents[$line['continent_code']] = $line;
+	    	}
+
+	    	if($line['country_iso_code'] != '' && !isset($countries[$line['country_iso_code']])){
+	    		$countries[$line['country_iso_code']] = $line;
+	    	}
+
+	    	if($line['subdivision_name'] != '' && !isset($regions[$line['subdivision_name']])){
+	    		$regions[$line['subdivision_name']] = $line;
+	    	}
+
+	    	if($line['city_name'] != '' && !isset($cities[$line['city_name']])){
+	    		$cities[$line['city_name']] = $line;
+	    	}
+	    }
+
+
+	    $this->info( 'Timezones: ' . count($timezones));
+	    $this->info( 'Continents: ' . count($continents));
+	    $this->info( 'Countries: ' . count($countries));
+	    $this->info( 'Regions: ' . count($regions));
+	    $this->info( 'Cities: ' . count($cities));
+
+
+	    //delete all first as constraints exist
+	    DB::table('cities')->delete();
+	    DB::table('regions')->delete();
+	    DB::table('countries')->delete();
+	    DB::table('continents')->delete();
+	    DB::table('time_zones')->delete();
+
+	    //insert timezones
+	    foreach($timezones as $string => $value){
+	    	$timezones[$string] = DB::table('time_zones')->insertGetId(
+	    		['string' => $string]
+	    	);
+	    }
+	    $this->info('Timezones Imported Into Database');
+
+	    //continents
+	    foreach($continents as $continent){
+	    	$insert = [
+    			'code' => $continent['continent_code'],
+    			'name' => $continent['continent_name']
+    		];
+    		if((isset($timezones[$continent['time_zone']]))){
+    			$insert['time_zone_id'] = $timezones[$continent['time_zone']];
+    		}
+	    	$continents[$continent['continent_code']] = DB::table('continents')->insertGetId($insert);
+	    }
+	    $this->info('Continents Imported Into Database');
+
+	    //countries
+	    foreach($countries as $country){
+	    	$insert = [
+    			'code' => $country['country_iso_code'],
+    			'name' => $country['country_name']
+    		];
+    		if((isset($timezones[$country['time_zone']]))){
+    			$insert['time_zone_id'] = $timezones[$country['time_zone']];
+    		}
+    		if((isset($continents[$country['continent_code']]))){
+    			$insert['continent_id'] = $continents[$country['continent_code']];
+    		}
+	    	$countries[$country['country_iso_code']] = DB::table('countries')->insertGetId($insert);
+	    }
+        $this->info('Countries Imported Into Database');
+
+        //regions
+        foreach($regions as $region){
+        	$insert = [
+        		'code' => $region['subdivision_iso_code'],
+        		'name' => $region['subdivision_name']
+        	];
+        	if((isset($timezones[$region['time_zone']]))){
+    			$insert['time_zone_id'] = $timezones[$region['time_zone']];
+    		}
+    		if((isset($countries[$region['country_iso_code']]))){
+    			$insert['country_id'] = $countries[$region['country_iso_code']];
+    		}
+    		$regions[$region['subdivision_name']] = DB::table('regions')->insertGetId($insert);
+        }
+        $this->info('Regions Imported Into Database');
+
+        foreach($cities as $city){
+        	$insert = [
+        		'name' => $city['city_name']
+        	];
+        	if((isset($timezones[$city['time_zone']]))){
+    			$insert['time_zone_id'] = $timezones[$city['time_zone']];
+    		}
+    		if((isset($countries[$city['country_iso_code']]))){
+    			$insert['country_id'] = $countries[$city['country_iso_code']];
+    		}
+    		if((isset($regions[$city['subdivision_name']]))){
+    			$insert['region_id'] = $regions[$city['subdivision_name']];
+    		}
+    		$cities[$city['city_name']] = DB::table('cities')->insertGetId($insert);
+        }
+        $this->info('Cities Imported Into Database');
+
+
+        //$file->delete(storage_path() . '/temp/geolite.csv');
         
         
     }
