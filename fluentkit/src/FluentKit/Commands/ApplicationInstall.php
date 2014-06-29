@@ -44,8 +44,6 @@ class ApplicationInstall extends Command {
         $app = $this->getLaravel();
         $args = $this->argument();
         
-        $app['events']->fire('installing', array($args));
-        
         //test the db connection
         try{
             $dbh = new PDO('mysql:host='.$args['db-host'].';dbname='.$args['db-name'].'',$args['db-user'],$args['db-password']);
@@ -69,10 +67,6 @@ class ApplicationInstall extends Command {
         
         $this->info('Seeding Database...');
         $this->call('db:seed', array());
-        /*
-        $this->info('Importing Countries Data...');
-        $this->call('fluentkit:locations', array());
-        */
     
         $this->info('Writting Install File...');
         
@@ -81,11 +75,19 @@ class ApplicationInstall extends Command {
         unset($data['admin-email']);
         unset($data['admin-password']);
         $data['installed'] = $app['config']->get('app.version');
+        $data['time'] = time();
         $app['files']->put($app['path.storage'] . '/fluentkit', json_encode($data));
         
-        $this->info('Install Complete!');
+        $this->info('Firing Post Install Scripts...');
         
-        $app['events']->fire('installed', array($args));
+        $resp = $app['events']->fire('installed', array($args));
+
+        $resp = array_filter($resp);
+        foreach($resp as $response){
+        	$this->info($response);
+        }
+
+        $this->info('Install Complete!');
         
     }
 

@@ -1,6 +1,7 @@
 <?php
 namespace FluentKit\Providers;
 
+use Exception, PDO, PDOException;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Foundation\AliasLoader;
 
@@ -37,7 +38,7 @@ class FluentKitServiceProvider extends ServiceProvider {
             
             
             $app['installed'] = true;
-        }catch (\Exception $e){
+        }catch (Exception $e){
             
             $app['config']->set('view.paths', array(app_path().'/views'));
             
@@ -79,9 +80,9 @@ class FluentKitServiceProvider extends ServiceProvider {
                     
                     //test the db connection
                     try{
-                        $dbh = new \PDO('mysql:host='.$app['request']->input('dbhost').';dbname='.$app['request']->input('dbname').'',$app['request']->input('dbuser'),$app['request']->input('dbpassword'));
+                        $dbh = new PDO('mysql:host='.$app['request']->input('dbhost').';dbname='.$app['request']->input('dbname').'',$app['request']->input('dbuser'),$app['request']->input('dbpassword'));
                         $dbh = null;
-                    }catch(\PDOException $ex){
+                    }catch(PDOException $ex){
                         $data['status'] = 'error';
                         $data['message'] = 'Whoops! We could not connect to the Database with those details.';
                         $data['sql_error'] = $ex->getMessage();
@@ -110,6 +111,8 @@ class FluentKitServiceProvider extends ServiceProvider {
     public function register()
     {   
         $app = $this->app;
+
+        $this->app->register('Barryvdh\Debugbar\ServiceProvider');
         
 
 		//fluent providers
@@ -121,7 +124,6 @@ class FluentKitServiceProvider extends ServiceProvider {
             $this->app->register('FluentKit\Plugin\PluginServiceProvider');
             
             //custom providers
-            $this->app->register('Barryvdh\Debugbar\ServiceProvider');
             $this->app->register('Humweb\Filters\FiltersServiceProvider'); 
             $this->app->register('AdamWathan\BootForms\BootFormsServiceProvider');
         }

@@ -21,6 +21,7 @@
                 $scope.timeout = 0;
                 $http.post('/install', $scope.formData)
                 .success(function(data) {
+                    document.getElementById("progress").scrollIntoView();
                     console.log(data);
                     if(data.status == 'error'){
                         $scope.global_error = data.message;
@@ -53,7 +54,7 @@
 
 		}
     </script>
-    <div class="row" ng-controller="formController">
+    <div class="row" ng-controller="formController" style="padding-bottom:60px;">
         <div class="col-md-6 col-md-offset-3">
             <form role="form" novalidate name="form">
                 
@@ -66,7 +67,7 @@
                     <code ng-show="sql_error">[[ sql_error ]]</code>
                 </div>
                 
-                <div ng-repeat="msg in install_msgs track by $index"><span class="label label-success">[[ msg ]]</span></div>
+                <div ng-repeat="msg in install_msgs track by $index" id="progress"><span class="label label-success">[[ msg ]]</span></div>
                 
                 <div class="label label-success" ng-show="global_success">[[ global_success ]]</div>
                 
